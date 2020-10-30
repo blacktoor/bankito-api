@@ -1,6 +1,10 @@
 const express = require("express")
-
+// importing database settings
+const connectDB = require("./config/db")
 const app = express()
+
+// connnecting database
+connectDB()
 
 app.get("/", (req, res) => {
   res.json({ msg: "Hello there" })

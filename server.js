@@ -6,6 +6,9 @@ const app = express()
 // connnecting database
 connectDB()
 
+// Init Middleware - To enable us use req.body
+app.use(express.json({ extended: false }))
+
 app.get("/", (req, res) => {
   res.json({ msg: "Hello there" })
 })

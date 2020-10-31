@@ -47,9 +47,9 @@ router.post(
       if (userExists === null) {
         console.log(userExists)
 
-        return res
-          .status(400)
-          .json({ msg: "User Does not exist - Contact Administrator" })
+        return res.status(400).json({
+          msg: `User Does not exist - - Your Ip has been logged we are tracking your ${req.headers["user-agent"]}`,
+        })
       } else if (accountExist) {
         return res.status(400).json({ msg: "User Already has an account" })
       }
@@ -72,8 +72,44 @@ router.post(
 //  @route  PUT api/accounts/:id
 //  @desc   UPDATE accounts
 //  @access PRIVATE
-router.put("/:id", (req, res) => {
-  res.send("Update accounts")
+router.put("/:id", auth, async (req, res) => {
+  const { balance, active } = req.body
+
+  // BUILD ACCOUNT OBJECT
+
+  const accountFields = {}
+  if (balance) accountFields.balance = balance
+  if (active) accountFields.active = active
+
+  try {
+    let userAccount = await Account.findById(req.params.id)
+
+    if (!userAccount)
+      return res.status(404).json({ msg: "Account does not exist" })
+
+    let authorisedUser = await User.findById(req.user.id)
+
+    // MAKING SURE USER IS AN ADMIN OR TELLER - ONLY TELLERS/ADMINS CAN UPDATE ACCOUNTS
+    if (
+      authorisedUser.level !== "efiewura" &&
+      authorisedUser.level !== "teller"
+    ) {
+      return res.status(403).json({
+        msg: `Access Denied - Your Ip has been logged we are tracking your ${req.headers["user-agent"]}`,
+      })
+    }
+
+    userAccount = await Account.findByIdAndUpdate(
+      req.params.id,
+      { $set: accountFields },
+      { new: true }
+    )
+
+    res.json(userAccount)
+  } catch (err) {
+    console.error(err.message)
+    res.status(500).send("Server Error")
+  }
 })
 
 //  @route  DELETE api/accounts/:id

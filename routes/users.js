@@ -40,6 +40,7 @@ router.post(
       email,
       phone,
       password,
+      level,
     } = req.body
 
     try {
@@ -64,6 +65,7 @@ router.post(
         phone,
         occupation,
         password,
+        level,
       })
 
       const salt = await bcrypt.genSalt()

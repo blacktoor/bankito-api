@@ -37,7 +37,7 @@ router.post(
       return res.status(400).json({ error: errors.array() })
     }
 
-    const { user, accountNumber, balance } = req.body
+    const { user, accountNumber, balance, active } = req.body
 
     try {
       let userExists = await User.findOne({ user })
@@ -58,6 +58,7 @@ router.post(
         user: req.user.id,
         accountNumber,
         balance,
+        active,
       })
       const account = await newAccount.save()
 
@@ -89,7 +90,7 @@ router.put("/:id", auth, async (req, res) => {
 
     let authorisedUser = await User.findById(req.user.id)
 
-    // MAKING SURE USER IS AN ADMIN OR TELLER - ONLY TELLERS/ADMINS CAN UPDATE ACCOUNTS
+    // MAKING SURE ONLY ADMIN OR TELLER CAN UPDATE ACCOUNTS INFO
     if (
       authorisedUser.level !== "efiewura" &&
       authorisedUser.level !== "teller"
@@ -115,8 +116,28 @@ router.put("/:id", auth, async (req, res) => {
 //  @route  DELETE api/accounts/:id
 //  @desc   DELETE accounts
 //  @access PRIVATE
-router.delete("/:id", (req, res) => {
-  res.send("Delete accounts")
+router.delete("/:id", auth, async (req, res) => {
+  try {
+    let userAccount = await Account.findById(req.params.id)
+
+    if (!userAccount)
+      return res.status(404).json({ msg: "Account does not exist" })
+
+    let authorisedUser = await User.findById(req.user.id)
+
+    // MAKING SURE ONLY ADMIN CAN DELETE ACCOUNTS
+    if (authorisedUser.level !== "efiewura") {
+      return res.status(403).json({
+        msg: `Access Denied - Your Ip has been logged we are tracking your ${req.headers["user-agent"]}`,
+      })
+    }
+
+    await Account.findByIdAndRemove(req.params.id)
+    res.json({ msg: "Account successfully removed" })
+  } catch (err) {
+    console.error(err.message)
+    res.status(500).send("Server Error")
+  }
 })
 
 module.exports = router

@@ -15,17 +15,10 @@ const router = express.Router()
 //  @access   PRIVATE
 router.get("/", auth, async (req, res) => {
   try {
-<<<<<<< HEAD
-    const accounts = await Account.findById({ user: req.user.id }).sort({
-      date: -1,
-    })
-    res.json(accounts)
-=======
     const account = await Account.find({ user: req.user.id }).sort({
       date: -1,
     })
     res.json(account)
->>>>>>> update
   } catch (err) {
     console.error(err.message)
     res.status(500).send("Server Error")

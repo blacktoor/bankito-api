@@ -3,10 +3,30 @@ const { check, validationResult } = require("express-validator")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const config = require("config")
+const auth = require("../middleware/auth")
 
 const router = express.Router()
 
 const User = require("../models/User")
+
+//  @route  GET api/auth
+//  @desc    Get All Users - ### Admin only ###
+//  @access Private
+router.get("/", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password")
+    if (user.level == "efiewura") {
+      const allUsers = await User.find().select("-password").sort({ date: -1 })
+      res.json(allUsers)
+    } else
+      res.status(403).json({
+        msg: `Access Denied - Your Ip has been logged we are tracking your ${req.headers["user-agent"]}`,
+      })
+  } catch (err) {
+    console.error(err.message)
+    res.status(500).send("Server Error")
+  }
+})
 
 //  @route  POST api/users
 //  @desc    Register a user
@@ -40,6 +60,7 @@ router.post(
       email,
       phone,
       password,
+      // REMOVE LEVEL BEFORE PRODUCTION
       level,
     } = req.body
 

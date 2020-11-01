@@ -12,7 +12,7 @@ const User = require("../models/User")
 //  @route  GET api/auth
 //  @desc    Get All Users - ### Admin only ###
 //  @access Private
-router.get("/", auth, async (req, res) => {
+router.get("/all", auth, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password")
     if (user.level == "efiewura") {

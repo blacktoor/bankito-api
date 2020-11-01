@@ -8,10 +8,29 @@ const Account = require("../models/Account")
 
 const router = express.Router()
 
-// API/ACCOUNTS ALREADY ADDED IN SERVER.JS
+//##### GET ALL ACCOUNTS - ADMIN ONLY ###################################
+
+//  @route  GET api/auth
+//  @desc    Get All Users - ### Admin only ###
+//  @access Private
+router.get("/all", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password")
+    if (user.level == "efiewura") {
+      const allAccounts = await Account.find().sort({ firstName: -1 })
+      res.json(allAccounts)
+    } else
+      res.status(403).json({
+        msg: `Access Denied - Your Ip has been logged we are tracking your ${req.headers["user-agent"]}`,
+      })
+  } catch (err) {
+    console.error(err.message)
+    res.status(500).send("Server Error")
+  }
+})
 
 //  @route  GET api/accounts
-//  @desc    Get all accounts of user
+//  @desc    Get User account of user
 //  @access   PRIVATE
 router.get("/", auth, async (req, res) => {
   try {

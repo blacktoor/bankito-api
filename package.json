@@ -18,6 +18,9 @@
     "mongoose": "^5.10.11",
     "mongoose-auto-increment": "^5.0.1"
   },
+  "engines": {
+    "node": "12.19.0"
+  },
   "devDependencies": {
     "concurrently": "^5.3.0",
     "nodemon": "^2.0.6"

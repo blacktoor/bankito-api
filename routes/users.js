@@ -119,4 +119,78 @@ router.post(
   }
 )
 
+//  @route  PUT api/users/:id
+//  @desc   UPDATE User Profile
+//  @access PRIVATE
+router.put("/:id", auth, async (req, res) => {
+  const {
+    firstName,
+    surname,
+    email,
+    occupation,
+    address,
+    phone,
+    password,
+  } = req.body
+
+  // BUILD ACCOUNT OBJECT
+
+  const userField = {}
+  if (firstName) userField.firstName = firstName
+  if (surname) userField.surname = surname
+  if (email) userField.email = email
+  if (occupation) userField.occupation = occupation
+  if (address) userField.address = address
+  if (phone) userField.phone = phone
+  if (password) userField.password = password
+
+  try {
+    let currentUser = await User.findById(req.params.id)
+
+    if (currentUser._id.toString() !== req.params.id)
+      return res.status(404).json({
+        msg: `Access Denied - Your Ip has been logged we are tracking your ${req.headers["user-agent"]}`,
+      })
+
+    currentUser = await User.findByIdAndUpdate(
+      req.params.id,
+      { $set: userField },
+      { new: true }
+    )
+
+    res.json(currentUser)
+  } catch (err) {
+    console.error(err.message)
+    res.status(500).send("Server Error")
+  }
+})
+
+//  @route  Delete api/users/:id
+//  @desc   Delete User Profile
+//  @access PRIVATE
+router.delete("/:id", auth, async (req, res) => {
+  try {
+    let currentUser = await User.findById(req.params.id)
+
+    if (!currentUser)
+      return res.status(404).json({ msg: "User does not exist" })
+
+    // MAKING SURE ONLY ADMIN AND USER HIMSELD CAN DELETE ACCOUNTS
+    if (
+      authorisedUser.level !== "efiewura" ||
+      currentUser._id.toString() !== req.user.id
+    ) {
+      return res.status(403).json({
+        msg: `Access Denied - Your Ip has been logged we are tracking your ${req.headers["user-agent"]}`,
+      })
+    }
+
+    await User.findByIdAndRemove(req.params.id)
+    res.json({ msg: "Account successfully removed" })
+  } catch (err) {
+    console.error(err.message)
+    res.status(500).send("Server Error")
+  }
+})
+
 module.exports = router
